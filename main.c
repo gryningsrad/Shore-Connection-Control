@@ -3,24 +3,21 @@
 Author: Mikael Mattson
 E-mail: mikael@mikaelmattsson.com
 
-
-
 */
 
+#include <avr/io.h>
+#include "main.h"
 
 // Constants / settings
-int SP_ON_DELAY = 10; // seconds before Shorepower is deemed stable
-int SWITCH_OFF = 0;
-int SWTICH_BATTERIES = 1;
-int SWITCH_SHOREPOW = 3;
-bool AUTO_SWITCHPOW = true; // Switch automatically to shore power if available
+int SP_ON_DELAY = 10; // no of seconds before Shorepower is deemed stable
+int AUTO_SWITCHPOW_SHORE = 1; // Switch automatically to shore power if available READ FROM JUMPER?
+int AUTO_SWITCHPOW_BATT = 0; // Switch automatically to shore power if available READ FROM JUMPER?
 
 // Flags
 bool bShorePowerAvailable;
 bool bBatteriesAvailable;
 int intSwitch; // 0=off (never used), 1=batteries, 2=shore power
 int intCurrMode; // stores current stable state of operating mode, b01 = batteries, b10 = shore power
-
 
 // If shorepower-pin status changes
 interruptShorePowerchange
