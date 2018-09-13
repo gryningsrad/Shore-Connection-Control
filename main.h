@@ -9,7 +9,6 @@
 
 // enum for the different input combinations
 /*
-
           bit:  7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
 ShoPow_Avail    x   x   x   x   x   x   x   1
 Batt_Avail      x   x   x   x   x   x   1   x
@@ -18,7 +17,12 @@ SwtShoPow       x   x   x   x   1   x   x   x
 
 
 */
-enum
+enum InputMask {
+        ShoPowAvail = 1,
+        BattAvail = 2,
+        SwtBatt = 4,
+        SwtShoPow = 8
+};
 
 
 #ENDIF
