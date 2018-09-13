@@ -14,10 +14,8 @@ ShoPow_Avail    x   x   x   x   x   x   x   1
 Batt_Avail      x   x   x   x   x   x   1   x
 SwtBatt         x   x   x   x   x   1   x   x
 SwtShoPow       x   x   x   x   1   x   x   x
-
-
 */
-enum InputMask {
+enum Inputs {
         ShoPowAvail = 1,
         BattAvail = 2,
         SwtBatt = 4,
