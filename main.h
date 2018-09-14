@@ -5,7 +5,9 @@
 */
 
 #IFNDEF main.h
-#DEFINE 
+#DEFINE main.h
+
+#define intCurrMode 0         // 0=battery, 1=shorepower
 
 
 // Output Pins
@@ -52,10 +54,10 @@ SwtBatt         x   x   x   x   x   1   x   x
 SwtShoPow       x   x   x   x   1   x   x   x
 */
 enum Inputs {
-        ShoPowAvail = 1,
-        BattAvail = 2,
-        SwtBatt = 4,
-        SwtShoPow = 8
+        Input_ShoPowAvail = 1,
+        Input_BattAvail = 2,
+        Input_SwtBatt = 4,
+        Input_SwtShoPow = 8
 };
 
 
