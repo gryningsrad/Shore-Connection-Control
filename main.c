@@ -13,13 +13,19 @@ int AUTO_SWITCHPOW_SHORE = 1; // Switch automatically to shore power if availabl
 int AUTO_SWITCHPOW_BATT = 0; // Switch automatically to shore power if available READ FROM JUMPER?
 
 // Flags
-bool bShorePowerAvailable;
-bool bBatteriesAvailable;
+int bShorePowerAvailable; 
+int bBatteriesAvailable;
 int intSwitch; // 0=off (never used), 1=batteries, 2=shore power
-int intCurrMode; // stores current stable state of operating mode
+int intCurrMode; // stores current stable state of operating mode, 0 = battery, 1= shorepower
+int intCurrStatus; // stores the whole status-byte (all inputpins)
 
-// If inputpins status changes, PCINT1, pins 23-28,1, PC0-PC6
-ISR (PCINT1_vect)
+// interrupt to check shorepower availability
+ISR(INT0) {
+     
+}
+
+// Poll of inputpins 23-28,1, PC0-PC6
+ISR (// ON TIMER 800ms)
 {
   int new_status = PORTC; // read whole byte
   _delay(300); // should take care of debouncing
@@ -27,24 +33,62 @@ ISR (PCINT1_vect)
   if (new_status != PORTC) { // if we still have bouncing than...
     _delay_ms(200); // ... add yet another 200 ms delay
   }
-  
-  if (new_status != PORTC) {
-    // TODO: Exit ISR 
-  }
-  
-  // If original state was Batteries ON
-  if (RELAY_BATT_PORT &= (1 ** RELAY_BATT_PIN))
+    
+  // If original state is Batteries ON (assuming switch = battery)
+  if (!(intCurrMode))
   {
     // what has changed ?
-    select case (intCurrStatus ~ new_status)
-      case 1: // selector -* battery
+    select case (intCurrStatus ~ new_status) // what has changed ?
+      case Input_ShoPowAvail: // shorepower has become available
+        if (new_status ~ Input_ShoPowAvail) { // if Shorepower has become active
+            statusLEDShorePow(2); // blink
+          
+        } else { // ShorePower has been turned off
+            statusLEDShorePow(0): // off         
+        }
+        break;
     
-    case 2: // selector -* shorepower
+      case Input_BattAvail: // has become available (used only when starting up boat?
+          // DO NOTHING
+          break;
     
-    case 4: // battery -* available NOT POSSIBLE!
+      case Input_SwtBatt: // switch turned to Battery 
+          // DO NOTHING
+          break;
     
-    case 8: // shorepower available
+      case Input_SwtShoPow: // switch turned to ShorePower
+          // TODO: check if shorepower is available
+          // TODO: delay
+          // TODO: change relays
+          // TODO: change statusLED
+          break;
+    
+  } else { // intCurrMode = 1 = Shorepower connected
+    
+    select case (intCurrStatus ~ new_status) // what has changed ?
+      case Input_ShoPowAvail: // shorepower has become available
+          // DO NOTHING
+          break;
+    
+      case Input_BattAvail: // has become available (used only when starting up boat?
+          statusLEDBattAvail(2); // Blink
+    
+      case Input_SwtBatt: // switch turned to Battery 
+          // TODO: check if batterys is availbale
+          // TODO: delay
+          // TODO: change
+          break;
+    
+      case Input_SwtShoPow: // switch turned to ShorePower
+          // DO NOTHING    
+          break;
+    
   }
+  
+  
+  // case battery off + shore poweroff:
+  // TODO: activate battery relay only, blink statusLED
+  
   
 }
 
