@@ -13,25 +13,23 @@ const int blinkInterval = 500; // how many milliseconds between blinks
 // Other global variables
 unsigned long startMillis;
 unsigned long currentMillis;
+const int LED_OFF = 0;
+const int LED_ON = 1;
+const int LED_BLINK = 2;
 
 // Flags
-int bShorePowerAvailable; 
 int bBatteriesAvailable;
 int intSwitch; // 0=off (never used), 1=batteries, 2=shore power
 int intCurrMode; // stores current stable state of operating mode, 0 = battery, 1= shorepower
 
 // Pins
-const int pinShorePowerRelay = 1;
-const int pinBatteryRelay = 2;
+const int pinRelayShorePower = 1;
+const int pinRelayBattery = 2;
 const int pinLedBattery = 3;
 const int pinLedShore = 4;
-
-
-// interrupt to check shorepower availability
-ISR(INT0) {
-     
-}
-
+const int pinSwitchShore = 5;
+const int pinSwitchBattery = 6;
+const int pinShoreAvailable = 7;
 
 // Poll of inputpins 23-28,1, PC0-PC6
 ISR (// ON TIMER 800ms)
@@ -101,8 +99,47 @@ ISR (// ON TIMER 800ms)
 }
      
 void setup() {
+     
+     Serial.begin(9600);
+     
      // Get start time for our LED-blink-function
      startMillis = millis();
+     
+     // Pin setup
+     pinMode(pinRelayShorePower, OUTPUT);
+     pinMode(pinRelayBattery, OUTPUT);
+     pinMode(pinLedBattery, OUTPUT);
+     pinMode(pinLedShore, OUTPUT);
+     
+     pinMode(pinSwitchShore, INPUT);
+     pinMode(pinSwitchBattery, INPUT);
+     pinMode(pinShoreAvailable, INPUT);
+     
+     // initial setup of LEDs and relays.
+     // Power to controller is from batteries so we assume that battery is on
+     intCurrMode = 0; // 0 = battery
+     
+     digitalWrite(pinBatteryRelay, LOW); // relay is NC (battery normally connected if anything happens to controller
+     digitalWrite(pinShoreRelay, LOW);
+     
+     statusLEDBatt(LED_ON); 
+     statusLEDShore(LED_OFF);
+     
+     // check status of Shoreconnection
+     if (ShorePowerAvailable())
+     {
+          statusLEDShore(LED_BLINK);
+     }
+     
+     // check switch status, if put on "shore", delay then switch to shore
+     if (intSwitch == 0) { // Battery
+          // do nothing
+     } elseif (intSwitch == 1) { // shore power
+          if (ShorePowerAvailable())
+          {
+               SwitchToShorePower();               
+          }
+     }
      
 }
 
@@ -141,11 +178,18 @@ void loop()
   
 }
 
-// Functino to switch from Shore Power to Batteries
+int ShorePowerAvailable() // returns 0 if not, 1 if available
+{
+     int _status = digitalRead(pinShoreAvailable);
+     return _status;
+}
+
+// Function to switch from Shore Power to Batteries
 void SwitchToBatteries()
 {
   // Toggle
   relayBatt(1);
+  
   _delay(500);
   relayShorePow(0);
 }
@@ -154,43 +198,54 @@ void SwitchToBatteries()
 void SwitchToShorePower()
 {
     relayShorePow(1);
-    delay(5000); // 5 seconds
-    if (bShorePowerAvailable) // if still OK
+    
+    delay(3000); // 5 seconds
+    if (ShorePowerAvailable()) // if still OK
     {
-      relayBATT(0);
+      relayBATT(0); // Switch off batteries
     }
 }
 
 // Operation of relayShorePower
 void relayShorePow(int _status)
 {
-  // Set relay port to high
+  if (_status) { // = 1 = on
+     // Set relay port to high
+     digitalWrite(pinRelayShorePower, HIGH);
+     // Set status LED to "on"
+     statusLEDShorePow(LED_ON);
+  } else { // = 0
+     digitalWrite(pinRelayShorePower, LOW);
+     // Set status LED to "on"
+     statusLEDShorePow(LED_OFF);
+  }
   
-  // Set status LED to "on"
-  statusLEDShorePow(1);
-  statusLEDBatt(0);
 }
 
 // Operation of relayBattery
 void relayBATT(int _status)
 {
-  // Set relay port to high
-  digitalWrite(pinRelayBatt, HIGH);
-  
-  // Set status LED to "on"
-  statusLEDBatt(1);
-  statusLEDShorePow(0);
+     if (_status) { // = 1 = on
+     // Set relay port to high
+     digitalWrite(pinRelayBatt, HIGH);
+     // Set status LED to "on"
+     statusLEDBatt(LED_ON);
+  } else { // = 0
+     digitalWrite(pinRelayBatt, LOW);
+     // Set status LED to "on"
+     statusLEDBatt(LED_OFF);
+  }
 }
 
 void statusLEDShorePow(int _status) // 0 = off, 1 = on, 2 = blink
 {
-  if (_status == 0) {
-       digitalWrite(LED_SHORE_PIN, LOW);
+  if (_status == LED_OFF) {
+       digitalWrite(pinLedShore, LOW);
   } else {
-       digitalWrite(LED_SHORE_PIN, HIGH);
+       digitalWrite(pinLedShore, HIGH);
   }
      
-  if (_status == 2) { // We want the LED to blink    
+  if (_status == LED_BLINK) { // We want the LED to blink    
      blinkLEDShore = 1;
   } else {
      blinkLEDShore = 0;    
@@ -199,13 +254,13 @@ void statusLEDShorePow(int _status) // 0 = off, 1 = on, 2 = blink
 
 void statusLEDBatt(int _status) // 0 = off, 1 = on, 2 = blink
 {
-  if (_status == 0) {
-       digitalWrite(LED_BATT_PIN, LOW);
+  if (_status == LED_OFF) {
+       digitalWrite(pinLedBattery, LOW);
   } else {
-       digitalWrite(LED_BATT_PIN, HIGH);
+       digitalWrite(pinLedBattery, HIGH);
   }
      
-  if (_status == 2) { // We want the LED to blink    
+  if (_status == LED_BLINK) { // We want the LED to blink    
      blinkLEDBatt = 1;
   } else {
      blinkLEDBatt = 0;    
