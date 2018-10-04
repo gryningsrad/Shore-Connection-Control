@@ -5,7 +5,6 @@ E-mail: mikael@mikaelmattsson.com
 
 */
 
-#include <avr/io.h>
 #include "main.h"
 
 // Constants / settings
@@ -21,6 +20,20 @@ int intCurrStatus; // stores the whole status-byte (all inputpins)
 
 // interrupt to check shorepower availability
 ISR(INT0) {
+     
+}
+
+
+// Blink-function for LEDS
+void BlinkFunctionForLeds {
+     if (blinkLEDBatt) {
+          // Toggle LED-pin
+          digitalWrite(LED_BATT_PIN, !digitalRead(LED_BATT_PIN));
+     }
+     
+     if (blinkLEDShore) {
+          digitalWrite(LED_SHORE_PIN, !digitalRead(LED_SHORE_PIN));
+     }
      
 }
 
@@ -92,7 +105,7 @@ ISR (// ON TIMER 800ms)
   
 }
 
-void main()
+void loop()
 {
   // TODO: initalize registrers and timers
   /*
@@ -131,22 +144,21 @@ SwitchToShorePower()
     }
 }
 
-// Control of relayShorePower
+// Operation of relayShorePower
 void relayShorePow(int _status)
 {
   // Set relay port to high
-  
   
   // Set status LED to "on"
   statusLEDShorePow(1);
   statusLEDBatt(0);
 }
 
-// Control of relayBattery
+// Operation of relayBattery
 void relayBATT(int _status)
 {
   // Set relay port to high
-  
+  digitalWrite(pinRelayBatt, HIGH);
   
   // Set status LED to "on"
   statusLEDBatt(1);
@@ -155,12 +167,33 @@ void relayBATT(int _status)
 
 void statusLEDShorePow(int _status) // 0 = off, 1 = on, 2 = blink
 {
-  LED_SHORE_PORT |= (1 ?? LED_SHORE_PIN);
+  if (_status == 0) {
+       digitalWrite(LED_SHORE_PIN, LOW);
+  } else {
+       digitalWrite(LED_SHORE_PIN, HIGH);
+  }
+     
+  if (_status == 2) { // We want the LED to blink    
+     blinkLEDShore = 1;
+  } else {
+     blinkLEDShore = 0;    
+  }
 }
 
 void statusLEDBatt(int _status) // 0 = off, 1 = on, 2 = blink
 {
-  LED_BATT_PORT |= (1 ?? LED_BATT_PIN);
+  if (_status == 0) {
+       digitalWrite(LED_BATT_PIN, LOW);
+  } else {
+       digitalWrite(LED_BATT_PIN, HIGH);
+  }
+     
+  if (_status == 2) { // We want the LED to blink    
+     blinkLEDBatt = 1;
+  } else {
+     blinkLEDBatt = 0;    
+  }
+  
 }
 
 
