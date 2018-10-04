@@ -162,8 +162,9 @@ void loop()
   // Blink function
   currentMillis = millis();
      
-  if (((blinkLEDBatt + blinkLEDShore) > 0) && (currentMillis - startMillis >= blinkInterval)) { // If any LED should blink
-       if (blinkLEDBatt) {
+  if (currentMillis - startMillis >= blinkInterval) { // Times up!
+      // Blink LEDs! 
+      if (blinkLEDBatt) {
           // Toggle LED-pin
           digitalWrite(pinLedBattery, !digitalRead(pinLedBattery));
        }
@@ -174,6 +175,9 @@ void loop()
        }
        startMillis = currentMillis;
        
+      // Check switch input
+      
+    
   } // millis-check
   
 }
@@ -193,6 +197,12 @@ void SwitchToBatteries()
   _delay(500);
   relayShorePow(0);
 }
+  
+int ReadSwitch()
+  {
+     
+    
+  }
 
 // Function to switch from Batteries to Shore Power
 void SwitchToShorePower()
