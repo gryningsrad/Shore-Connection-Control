@@ -5,37 +5,33 @@ E-mail: mikael@mikaelmattsson.com
 
 */
 
-#include "main.h"
-
-// Constants / settings
+// Settings
 int AUTO_SWITCHPOW_SHORE = 1; // Switch automatically to shore power if available READ FROM JUMPER?
 int AUTO_SWITCHPOW_BATT = 0; // Switch automatically to shore power if available READ FROM JUMPER?
+const int blinkInterval = 500; // how many milliseconds between blinks
+
+// Other global variables
+unsigned long startMillis;
+unsigned long currentMillis;
 
 // Flags
 int bShorePowerAvailable; 
 int bBatteriesAvailable;
 int intSwitch; // 0=off (never used), 1=batteries, 2=shore power
 int intCurrMode; // stores current stable state of operating mode, 0 = battery, 1= shorepower
-int intCurrStatus; // stores the whole status-byte (all inputpins)
+
+// Pins
+const int pinShorePowerRelay = 1;
+const int pinBatteryRelay = 2;
+const int pinLedBattery = 3;
+const int pinLedShore = 4;
+
 
 // interrupt to check shorepower availability
 ISR(INT0) {
      
 }
 
-
-// Blink-function for LEDS
-void BlinkFunctionForLeds {
-     if (blinkLEDBatt) {
-          // Toggle LED-pin
-          digitalWrite(LED_BATT_PIN, !digitalRead(LED_BATT_PIN));
-     }
-     
-     if (blinkLEDShore) {
-          digitalWrite(LED_SHORE_PIN, !digitalRead(LED_SHORE_PIN));
-     }
-     
-}
 
 // Poll of inputpins 23-28,1, PC0-PC6
 ISR (// ON TIMER 800ms)
@@ -98,11 +94,16 @@ ISR (// ON TIMER 800ms)
     
   }
   
-  
   // case battery off + shore poweroff:
   // TODO: activate battery relay only, blink statusLED
   
   
+}
+     
+void setup() {
+     // Get start time for our LED-blink-function
+     startMillis = millis();
+     
 }
 
 void loop()
@@ -121,11 +122,27 @@ void loop()
   
   // enable interrupts
   
+  // Blink function
+  currentMillis = millis();
+     
+  if (((blinkLEDBatt + blinkLEDShore) > 0) && (currentMillis - startMillis >= blinkInterval)) { // If any LED should blink
+       if (blinkLEDBatt) {
+          // Toggle LED-pin
+          digitalWrite(pinLedBattery, !digitalRead(pinLedBattery));
+       }
+
+       if (blinkLEDShore) {
+          // Toggle LED-pin
+          digitalWrite(pinLedShore, !digitalRead(pinLedShore));
+       }
+       startMillis = currentMillis;
+       
+  } // millis-check
   
 }
 
 // Functino to switch from Shore Power to Batteries
-SwitchToBatteries()
+void SwitchToBatteries()
 {
   // Toggle
   relayBatt(1);
@@ -134,7 +151,7 @@ SwitchToBatteries()
 }
 
 // Function to switch from Batteries to Shore Power
-SwitchToShorePower()
+void SwitchToShorePower()
 {
     relayShorePow(1);
     delay(5000); // 5 seconds
