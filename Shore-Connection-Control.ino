@@ -31,16 +31,15 @@ const int pinSwitchShore = 5;
 const int pinSwitchBattery = 6;
 const int pinShoreAvailable = 7;
 
-// Poll of inputpins 23-28,1, PC0-PC6
-ISR (// ON TIMER 800ms)
+// If shore power connection availabilty changes
+IR_ShoreChanged () // 
 {
-  int new_status = PORTC; // read whole byte
-  _delay(300); // should take care of debouncing
-  
-  if (new_status != PORTC) { // if we still have bouncing than...
-    _delay_ms(200); // ... add yet another 200 ms delay
-  }
-    
+  // Combinations possible:
+  // 1: Battery ON, Shorepower OFF, Shore Avail OFF -> ON
+  // 2: Battery ON, Shorepower OFF, Shore Avail ON -> OFF
+  // 3: Battery OFF, ShorePower ON, Shore Avail ON -> OFF
+  // 
+  // ShorePowerAvailable()
   // If original state is Batteries ON (assuming switch = battery)
   if (!(intCurrMode))
   {
@@ -139,7 +138,10 @@ void setup() {
                SwitchToShorePower(3000);   // 3000 ms delay
           }
      }
-     
+      
+      // enable interrups, check of ShorePoweravailability
+      attachInterrupt (digitalPinToInterrupt (pinShoreAvailable), IR_ShoreChanged, CHANGE);
+     sei();
 }
 
 void loop()
