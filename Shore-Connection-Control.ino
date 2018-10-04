@@ -118,7 +118,7 @@ void setup() {
      // initial setup of LEDs and relays.
      // Power to controller is from batteries so we assume that battery is on
      intCurrMode = 0; // 0 = battery
-     
+         
      digitalWrite(pinBatteryRelay, LOW); // relay is NC (battery normally connected if anything happens to controller
      digitalWrite(pinShoreRelay, LOW);
      
@@ -132,12 +132,11 @@ void setup() {
      }
      
      // check switch status, if put on "shore", delay then switch to shore
-     if (intSwitch == 0) { // Battery
-          // do nothing
-     } elseif (intSwitch == 1) { // shore power
+     intSwitch = GetSwitch();
+     if (intSwitch == 1) { // Battery
           if (ShorePowerAvailable())
           {
-               SwitchToShorePower();               
+               SwitchToShorePower(3000);   // 3000 ms delay
           }
      }
      
@@ -176,7 +175,9 @@ void loop()
        startMillis = currentMillis;
        
       // Check switch input
-      
+      if (intSwitch != ReadSwitch()) {
+        
+      }
     
   } // millis-check
   
@@ -205,11 +206,11 @@ int ReadSwitch()
   }
 
 // Function to switch from Batteries to Shore Power
-void SwitchToShorePower()
+void SwitchToShorePower(int _delay)
 {
     relayShorePow(1);
     
-    delay(3000); // 5 seconds
+    delay(_delay); // 5 seconds
     if (ShorePowerAvailable()) // if still OK
     {
       relayBATT(0); // Switch off batteries
